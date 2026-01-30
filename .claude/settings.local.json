@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start \"\" \"C:\\\\Users\\\\PhilipDodds\\\\claude-practice2\\\\index.html\")"
+    ]
+  }
+}

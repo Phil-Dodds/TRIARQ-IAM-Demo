@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIARQ IAM Access Request Portal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen">
+            <div class="login-container">
+                <div class="logo">
+                    <h1>TRIARQ<span>Health</span></h1>
+                    <p class="subtitle">IAM Access Request Portal</p>
+                </div>
+                <div class="login-form-card">
+                    <h2>Sign In</h2>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <select id="login-email" class="form-control" required>
+                                <option value="">-- Select User --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" class="form-control" required placeholder="Enter password">
+                        </div>
+                        <div id="login-error" class="form-error hidden"></div>
+                        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Sign In</button>
+                    </form>
+                    <div class="demo-credentials">
+                        <h4>Demo Credentials</h4>
+                        <p>Password for all users: <code>DemoPass123!</code></p>
+                        <div class="demo-users">
+                            <div><strong>Jon</strong> - IAM + Admin</div>
+                            <div><strong>Pintal</strong> - IAM</div>
+                            <div><strong>Ami</strong> - IAM</div>
+                            <div><strong>Alice Johnson</strong> - Employee</div>
+                            <div><strong>Bob Smith</strong> - Employee</div>
+                        </div>
+                        <button type="button" id="login-reset-db-btn" class="btn btn-sm btn-danger" style="margin-top: 16px; width: 100%;">Reset Database</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="main-app" class="screen hidden">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <h1 class="app-title">TRIARQ<span>Health</span></h1>
+                    <span class="app-name">IAM Portal</span>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span id="role-badges"></span>
+                        <span id="user-identity"></span>
+                    </div>
+                    <button id="logout-btn" class="btn btn-sm btn-secondary">Logout</button>
+                </div>
+            </header>
+
+            <!-- Navigation -->
+            <nav class="app-nav" id="app-nav">
+                <!-- Populated by JS based on role -->
+            </nav>
+
+            <!-- Main Content -->
+            <main class="app-main" id="app-main">
+                <!-- Content rendered by JS -->
+            </main>
+
+            <!-- Footer with data actions -->
+            <footer class="app-footer">
+                <div class="data-actions">
+                    <button id="export-data-btn" class="btn btn-sm btn-secondary">Export Data</button>
+                    <button id="import-data-btn" class="btn btn-sm btn-secondary">Import Data</button>
+                    <input type="file" id="import-file-input" accept=".json" hidden>
+                    <button id="load-sample-btn" class="btn btn-sm btn-secondary">Load Sample Requests</button>
+                    <button id="reset-db-btn" class="btn btn-sm btn-danger">Reset Database</button>
+                </div>
+                <div class="footer-info">
+                    <span>TRIARQ IAM Demo v2.0</span>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Modal Container -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div id="modal-container" class="modal-container">
+                <!-- Modal content rendered by JS -->
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
