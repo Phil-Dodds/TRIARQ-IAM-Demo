@@ -412,12 +412,12 @@
     }
 
     // ===== Authentication =====
-    async function attemptLogin(email, password) {
+    async function attemptLogin(email) {
         const user = await dbGetByIndex(STORES.USERS, 'email', email);
 
         if (!user) {
             await logAudit(AUDIT_ACTIONS.LOGIN_FAILURE, 'USER', email, false, { reason: 'User not found' });
-            return { success: false, error: 'Invalid credentials' };
+            return { success: false, error: 'User not found' };
         }
 
         if (!user.isActive) {
@@ -425,41 +425,7 @@
             return { success: false, error: 'Account is deactivated' };
         }
 
-        // Check if locked
-        if (user.lockUntil && new Date(user.lockUntil) > new Date()) {
-            const minutesLeft = Math.ceil((new Date(user.lockUntil) - new Date()) / 60000);
-            await logAudit(AUDIT_ACTIONS.LOGIN_FAILURE, 'USER', user.userId, false, { reason: 'Account locked' });
-            return { success: false, error: `Account locked. Try again in ${minutesLeft} minute(s)` };
-        }
-
-        // Verify password
-        const isValid = await verifyPassword(password, user.passwordSalt, user.passwordHash);
-
-        if (!isValid) {
-            user.failedLoginCount = (user.failedLoginCount || 0) + 1;
-
-            if (user.failedLoginCount >= MAX_FAILED_ATTEMPTS) {
-                user.lockUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60000).toISOString();
-                user.failedLoginCount = 0;
-            }
-
-            user.updatedAt = new Date().toISOString();
-            await dbPut(STORES.USERS, user);
-
-            await logAudit(AUDIT_ACTIONS.LOGIN_FAILURE, 'USER', user.userId, false, {
-                reason: 'Invalid password',
-                failedAttempts: user.failedLoginCount
-            });
-
-            return { success: false, error: 'Invalid credentials' };
-        }
-
-        // Successful login
-        user.failedLoginCount = 0;
-        user.lockUntil = null;
-        user.updatedAt = new Date().toISOString();
-        await dbPut(STORES.USERS, user);
-
+        // Successful login (no password required for demo)
         state.currentUser = {
             userId: user.userId,
             name: user.name,
@@ -648,11 +614,10 @@
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
             const errorDiv = document.getElementById('login-error');
 
-            if (!email || !password) {
-                errorDiv.textContent = 'Please select a user and enter password';
+            if (!email) {
+                errorDiv.textContent = 'Please select a user';
                 errorDiv.classList.remove('hidden');
                 return;
             }
@@ -661,14 +626,13 @@
             loginBtn.disabled = true;
             loginBtn.textContent = 'Signing in...';
 
-            const result = await attemptLogin(email, password);
+            const result = await attemptLogin(email);
 
             loginBtn.disabled = false;
             loginBtn.textContent = 'Sign In';
 
             if (result.success) {
                 errorDiv.classList.add('hidden');
-                document.getElementById('login-password').value = '';
                 await initMainApp();
             } else {
                 errorDiv.textContent = result.error;
@@ -681,6 +645,17 @@
     }
 
     async function resetDatabase() {
+        const password = prompt('Enter admin password to reset database:');
+
+        if (password === null) {
+            return; // User cancelled
+        }
+
+        if (password !== 'DemoPass123!') {
+            showToast('Incorrect password', 'error');
+            return;
+        }
+
         if (!confirm('This will DELETE ALL DATA and reset to default users. Are you sure?')) {
             return;
         }

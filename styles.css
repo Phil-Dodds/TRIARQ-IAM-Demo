@@ -236,6 +236,12 @@ select.form-control {
     margin-bottom: 32px;
 }
 
+.logo-image {
+    height: 60px;
+    width: auto;
+    margin-bottom: 8px;
+}
+
 .logo h1 {
     font-size: 42px;
     color: white;
@@ -252,6 +258,29 @@ select.form-control {
     color: rgba(255, 255, 255, 0.8);
     font-size: 18px;
     margin-top: 8px;
+}
+
+.demo-banner {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    max-width: 500px;
+    text-align: center;
+}
+
+.demo-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.demo-description {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .login-form-card {
@@ -317,7 +346,7 @@ select.form-control {
 /* Header */
 .app-header {
     height: var(--header-height);
-    background: white;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -326,6 +355,11 @@ select.form-control {
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.header-logo {
+    height: 36px;
+    width: auto;
 }
 
 .header-left {
@@ -337,7 +371,7 @@ select.form-control {
 .app-title {
     font-size: 22px;
     font-weight: 700;
-    color: var(--primary-color);
+    color: white;
 }
 
 .app-title span {
@@ -345,16 +379,26 @@ select.form-control {
 }
 
 .app-name {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
     padding-left: 16px;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .header-right {
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+.header-right .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.header-right .btn-secondary:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .user-info {
@@ -394,6 +438,7 @@ select.form-control {
 
 #user-identity {
     font-weight: 500;
+    color: white;
 }
 
 /* Navigation */
