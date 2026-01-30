@@ -261,29 +261,26 @@ select.form-control {
 }
 
 .demo-banner {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-lg);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
     padding: 20px 24px;
     margin-bottom: 24px;
     max-width: 500px;
     text-align: center;
 }
 
-.demo-banner p {
-    margin: 0;
-}
-
-.demo-title {
-    color: white;
+.demo-banner p.demo-title {
+    color: #ffffff;
     font-size: 16px;
     font-weight: 600;
     margin: 0 0 8px 0;
     display: block;
 }
 
-.demo-description {
-    color: rgba(255, 255, 255, 0.85);
+.demo-banner p.demo-description {
+    color: #ffffff;
+    opacity: 0.9;
     font-size: 14px;
     line-height: 1.5;
     margin: 0;
