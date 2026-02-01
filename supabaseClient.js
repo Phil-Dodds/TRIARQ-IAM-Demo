@@ -5,8 +5,8 @@
 // Find them at: Supabase Dashboard → Settings → API
 // =====================================================
 
-const SUPABASE_URL = "https://<PROJECT_REF>.supabase.co";
-const SUPABASE_ANON_KEY = "<ANON_OR_PUBLISHABLE_KEY>";
+const SUPABASE_URL = "https://dretyqgfjapyrzduclfq.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_0IvYrT_acOxKiEe3IT0Uog_x8cx-4wW";
 
 // Initialize client (supabase-js loaded via CDN)
 window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
