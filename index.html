@@ -16,31 +16,26 @@
                     <p class="subtitle">IAM Access Request Portal</p>
                 </div>
                 <div class="demo-banner">
-                    <p class="demo-title">Demonstration of Claude Generated Application</p>
-                    <p class="demo-description">Select a demo user to make an internal access request. Or login as Jon, Ami, or Pintal to see what an IAM team member sees.</p>
+                    <p class="demo-title">Shared Multi-User Demo</p>
+                    <p class="demo-description">Sign in with your email to receive a magic link. All users share the same request data in real-time via Supabase.</p>
                 </div>
                 <div class="login-form-card">
                     <h2>Sign In</h2>
                     <form id="login-form">
                         <div class="form-group">
-                            <label for="login-email">Select User</label>
-                            <select id="login-email" class="form-control" required>
-                                <option value="">-- Select User --</option>
-                            </select>
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required>
                         </div>
                         <div id="login-error" class="form-error hidden"></div>
-                        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Sign In</button>
+                        <div id="login-success" class="form-success hidden"></div>
+                        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Send Magic Link</button>
                     </form>
-                    <div class="demo-credentials">
-                        <h4>Demo Users</h4>
-                        <div class="demo-users">
-                            <div><strong>Jon</strong> - IAM + Admin</div>
-                            <div><strong>Pintal</strong> - IAM</div>
-                            <div><strong>Ami</strong> - IAM</div>
-                            <div><strong>Alice Johnson</strong> - Employee</div>
-                            <div><strong>Bob Smith</strong> - Employee</div>
-                        </div>
-                        <button type="button" id="login-reset-db-btn" class="btn btn-sm btn-danger" style="margin-top: 16px; width: 100%;">Reset Database</button>
+                    <div class="demo-info">
+                        <h4>How It Works</h4>
+                        <p>1. Enter your email address</p>
+                        <p>2. Click "Send Magic Link"</p>
+                        <p>3. Check your inbox and click the link</p>
+                        <p>4. You're signed in!</p>
                     </div>
                 </div>
             </div>
@@ -73,17 +68,10 @@
                 <!-- Content rendered by JS -->
             </main>
 
-            <!-- Footer with data actions -->
+            <!-- Footer -->
             <footer class="app-footer">
-                <div class="data-actions">
-                    <button id="export-data-btn" class="btn btn-sm btn-secondary">Export Data</button>
-                    <button id="import-data-btn" class="btn btn-sm btn-secondary">Import Data</button>
-                    <input type="file" id="import-file-input" accept=".json" hidden>
-                    <button id="load-sample-btn" class="btn btn-sm btn-secondary">Load Sample Requests</button>
-                    <button id="reset-db-btn" class="btn btn-sm btn-danger">Reset Database</button>
-                </div>
                 <div class="footer-info">
-                    <span>TRIARQ IAM Demo v2.0</span>
+                    <span>TRIARQ IAM Portal v3.0 - Powered by Supabase</span>
                 </div>
             </footer>
         </div>
@@ -99,6 +87,11 @@
         <div id="toast-container" class="toast-container"></div>
     </div>
 
+    <!-- Supabase CDN (must load first) -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Supabase client initialization -->
+    <script src="supabaseClient.js"></script>
+    <!-- Main application -->
     <script src="app.js"></script>
 </body>
 </html>
