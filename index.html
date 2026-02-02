@@ -17,26 +17,25 @@
                 </div>
                 <div class="demo-banner">
                     <p class="demo-title">Shared Multi-User Demo</p>
-                    <p class="demo-description">Sign in with your email to receive a magic link. All users share the same request data in real-time via Supabase.</p>
+                    <p class="demo-description">Select a demo user to make an internal access request. All users share the same data in real-time via Supabase.</p>
                 </div>
                 <div class="login-form-card">
                     <h2>Sign In</h2>
                     <form id="login-form">
                         <div class="form-group">
-                            <label for="login-email">Email Address</label>
-                            <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required>
+                            <label for="login-user">Select User</label>
+                            <select id="login-user" class="form-control" required>
+                                <option value="">-- Select User --</option>
+                                <option value="jon">Jon (IAM + Admin)</option>
+                                <option value="pintal">Pintal (IAM)</option>
+                                <option value="ami">Ami (IAM)</option>
+                                <option value="alice">Alice Johnson (Employee)</option>
+                                <option value="bob">Bob Smith (Employee)</option>
+                            </select>
                         </div>
                         <div id="login-error" class="form-error hidden"></div>
-                        <div id="login-success" class="form-success hidden"></div>
-                        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Send Magic Link</button>
+                        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Sign In</button>
                     </form>
-                    <div class="demo-info">
-                        <h4>How It Works</h4>
-                        <p>1. Enter your email address</p>
-                        <p>2. Click "Send Magic Link"</p>
-                        <p>3. Check your inbox and click the link</p>
-                        <p>4. You're signed in!</p>
-                    </div>
                 </div>
             </div>
         </div>

@@ -1,11 +1,21 @@
-// ===== TRIARQ IAM Access Request Portal v3.0 =====
-// With Supabase Auth, Postgres Database, and Real-time Updates
+// ===== TRIARQ IAM Access Request Portal v3.1 =====
+// Shared data via Supabase (no auth required for demo)
 
 (function() {
     'use strict';
 
+    // ===== Demo Users =====
+    const DEMO_USERS = {
+        jon: { id: 'jon', name: 'Jon', email: 'jon@triarqhealth.com', isIam: true, isAdmin: true },
+        pintal: { id: 'pintal', name: 'Pintal', email: 'pintal@triarqhealth.com', isIam: true, isAdmin: false },
+        ami: { id: 'ami', name: 'Ami', email: 'ami@triarqhealth.com', isIam: true, isAdmin: false },
+        alice: { id: 'alice', name: 'Alice Johnson', email: 'alice@triarqhealth.com', isIam: false, isAdmin: false },
+        bob: { id: 'bob', name: 'Bob Smith', email: 'bob@triarqhealth.com', isIam: false, isAdmin: false }
+    };
+
     // ===== Constants =====
     const SLA_DAYS = 7;
+    const SESSION_KEY = 'triarq_iam_session';
 
     const SYSTEMS = [
         'Okta / SSO',
@@ -29,7 +39,6 @@
     // ===== State =====
     let state = {
         currentUser: null,
-        profile: null,
         requests: [],
         currentView: null,
         filters: {
@@ -38,6 +47,24 @@
             search: ''
         }
     };
+
+    // ===== Session Management =====
+    function saveSession(user) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    }
+
+    function loadSession() {
+        try {
+            const data = localStorage.getItem(SESSION_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    function clearSession() {
+        localStorage.removeItem(SESSION_KEY);
+    }
 
     // ===== Utility Functions =====
     function escapeHtml(text) {
@@ -141,11 +168,11 @@
 
     // ===== Permission Checks =====
     function isIamUser() {
-        return state.profile && (state.profile.is_iam || state.profile.is_admin);
+        return state.currentUser && (state.currentUser.isIam || state.currentUser.isAdmin);
     }
 
     function isAdmin() {
-        return state.profile && state.profile.is_admin;
+        return state.currentUser && state.currentUser.isAdmin;
     }
 
     function canViewAllRequests() {
@@ -154,60 +181,40 @@
 
     // ===== Auth Functions =====
     function initLoginForm() {
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const email = document.getElementById('login-email').value.trim();
+            const userId = document.getElementById('login-user').value;
             const errorDiv = document.getElementById('login-error');
-            const successDiv = document.getElementById('login-success');
-            const loginBtn = document.getElementById('login-btn');
 
-            if (!email) {
-                errorDiv.textContent = 'Please enter your email address';
+            if (!userId) {
+                errorDiv.textContent = 'Please select a user';
                 errorDiv.classList.remove('hidden');
-                successDiv.classList.add('hidden');
                 return;
             }
 
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Sending...';
-            errorDiv.classList.add('hidden');
-            successDiv.classList.add('hidden');
-
-            try {
-                await supabaseSignInWithEmail(email);
-                successDiv.textContent = 'Check your email for a magic link to sign in!';
-                successDiv.classList.remove('hidden');
-                loginBtn.textContent = 'Link Sent!';
-            } catch (error) {
-                errorDiv.textContent = error.message || 'Failed to send magic link';
+            const user = DEMO_USERS[userId];
+            if (!user) {
+                errorDiv.textContent = 'Invalid user';
                 errorDiv.classList.remove('hidden');
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Send Magic Link';
+                return;
             }
+
+            state.currentUser = user;
+            saveSession(user);
+            errorDiv.classList.add('hidden');
+            initMainApp();
         });
     }
 
-    async function handleSignOut() {
-        try {
-            await supabaseSignOut();
-            state.currentUser = null;
-            state.profile = null;
-            state.requests = [];
-            supabaseUnsubscribeFromRequests();
-            showScreen('login-screen');
-            showToast('Signed out successfully', 'success');
-
-            // Reset login form
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-btn').disabled = false;
-            document.getElementById('login-btn').textContent = 'Send Magic Link';
-            document.getElementById('login-error').classList.add('hidden');
-            document.getElementById('login-success').classList.add('hidden');
-        } catch (error) {
-            console.error('Sign out error:', error);
-            showToast('Failed to sign out', 'error');
-        }
+    function handleSignOut() {
+        state.currentUser = null;
+        state.requests = [];
+        clearSession();
+        supabaseUnsubscribeFromRequests();
+        showScreen('login-screen');
+        document.getElementById('login-user').value = '';
+        showToast('Signed out successfully', 'success');
     }
 
     // ===== Data Loading =====
@@ -223,34 +230,22 @@
         }
     }
 
-    async function loadProfile(userId) {
-        try {
-            const profile = await supabaseGetProfile(userId);
-            state.profile = profile;
-            return profile;
-        } catch (error) {
-            console.error('Failed to load profile:', error);
-            return null;
-        }
-    }
-
     // ===== Header & Navigation =====
     function updateHeader() {
         const identitySpan = document.getElementById('user-identity');
         const badgesSpan = document.getElementById('role-badges');
 
         if (state.currentUser) {
-            const displayName = state.profile?.display_name || state.currentUser.email.split('@')[0];
-            identitySpan.textContent = displayName;
+            identitySpan.textContent = state.currentUser.name;
 
             let badges = '';
-            if (state.profile?.is_admin) {
+            if (state.currentUser.isAdmin) {
                 badges += '<span class="role-badge badge-admin">Admin</span>';
             }
-            if (state.profile?.is_iam) {
+            if (state.currentUser.isIam) {
                 badges += '<span class="role-badge badge-iam">IAM</span>';
             }
-            if (!state.profile?.is_iam && !state.profile?.is_admin) {
+            if (!state.currentUser.isIam && !state.currentUser.isAdmin) {
                 badges += '<span class="role-badge badge-employee">Employee</span>';
             }
             badgesSpan.innerHTML = badges;
@@ -261,20 +256,13 @@
         const nav = document.getElementById('app-nav');
         let navItems = '';
 
-        // All users can create and view their requests
         navItems += `
             <a href="#" class="nav-item" data-view="new-request">New Request</a>
             <a href="#" class="nav-item" data-view="my-requests">My Requests</a>
         `;
 
-        // IAM users see dashboard
         if (canViewAllRequests()) {
             navItems += `<a href="#" class="nav-item" data-view="dashboard">Dashboard</a>`;
-        }
-
-        // Admin users see settings
-        if (isAdmin()) {
-            navItems += `<a href="#" class="nav-item" data-view="settings">Settings</a>`;
         }
 
         nav.innerHTML = navItems;
@@ -310,13 +298,6 @@
                     navigateTo('my-requests');
                 }
                 break;
-            case 'settings':
-                if (isAdmin()) {
-                    renderSettings(mainContent);
-                } else {
-                    navigateTo('my-requests');
-                }
-                break;
             default:
                 navigateTo('new-request');
         }
@@ -340,8 +321,6 @@
             `<option value="${escapeHtml(u)}" ${u === 'Normal' ? 'selected' : ''}>${escapeHtml(u)}</option>`
         ).join('');
 
-        const defaultDept = state.profile?.department || '';
-
         container.innerHTML = `
             <div class="form-container">
                 <div class="card">
@@ -354,7 +333,7 @@
                                 <div class="form-group">
                                     <label for="req-name">Your Name</label>
                                     <input type="text" class="form-control" id="req-name"
-                                           value="${escapeHtml(state.profile?.display_name || state.currentUser.email.split('@')[0])}" readonly>
+                                           value="${escapeHtml(state.currentUser.name)}" readonly>
                                 </div>
                                 <div class="form-group">
                                     <label for="req-email">Your Email</label>
@@ -364,8 +343,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="req-department">Department / Team *</label>
-                                <input type="text" class="form-control" id="req-department"
-                                       value="${escapeHtml(defaultDept)}" required>
+                                <input type="text" class="form-control" id="req-department" required>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
@@ -410,7 +388,6 @@
             </div>
         `;
 
-        // Show/hide other system field
         document.getElementById('req-system').addEventListener('change', (e) => {
             const otherGroup = document.getElementById('other-system-group');
             const otherInput = document.getElementById('req-other-system');
@@ -443,11 +420,9 @@
             return;
         }
 
-        const displayName = state.profile?.display_name || state.currentUser.email.split('@')[0];
-
         const request = {
             requester_id: state.currentUser.id,
-            requester_name: displayName,
+            requester_name: state.currentUser.name,
             requester_email: state.currentUser.email,
             department: document.getElementById('req-department').value.trim(),
             application_or_system: system,
@@ -463,11 +438,10 @@
         try {
             const created = await supabaseCreateRequest(request);
 
-            // Add creation event
             await supabaseAddRequestEvent({
                 request_id: created.id,
                 actor_id: state.currentUser.id,
-                actor_name: displayName,
+                actor_name: state.currentUser.name,
                 actor_email: state.currentUser.email,
                 event_type: 'created',
                 new_value: 'New',
@@ -732,7 +706,6 @@
             return;
         }
 
-        // Load events for this request
         let events = [];
         try {
             events = await supabaseGetRequestEvents(requestId);
@@ -858,11 +831,8 @@
         `;
 
         showModal(modalContent, { wide: true });
-
-        // Make closeModal available globally for onclick
         window.closeModal = closeModal;
 
-        // Attach save handler
         const saveBtn = document.getElementById('save-detail-btn');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => saveRequestChanges(request));
@@ -887,7 +857,6 @@
 
     async function saveRequestChanges(request) {
         const canEdit = isIamUser();
-        const displayName = state.profile?.display_name || state.currentUser.email.split('@')[0];
         const updates = {};
         const eventsToAdd = [];
 
@@ -900,7 +869,7 @@
                 eventsToAdd.push({
                     request_id: request.id,
                     actor_id: state.currentUser.id,
-                    actor_name: displayName,
+                    actor_name: state.currentUser.name,
                     actor_email: state.currentUser.email,
                     event_type: 'status_changed',
                     old_value: request.status,
@@ -914,7 +883,7 @@
                 eventsToAdd.push({
                     request_id: request.id,
                     actor_id: state.currentUser.id,
-                    actor_name: displayName,
+                    actor_name: state.currentUser.name,
                     actor_email: state.currentUser.email,
                     event_type: 'assigned',
                     old_value: request.iam_assignee_name,
@@ -928,7 +897,7 @@
             eventsToAdd.push({
                 request_id: request.id,
                 actor_id: state.currentUser.id,
-                actor_name: displayName,
+                actor_name: state.currentUser.name,
                 actor_email: state.currentUser.email,
                 event_type: canEdit ? 'comment_added' : 'comment_employee',
                 comment: comment
@@ -941,12 +910,10 @@
         }
 
         try {
-            // Update request if needed
             if (Object.keys(updates).length > 0) {
                 await supabaseUpdateRequest(request.id, updates);
             }
 
-            // Add events
             for (const event of eventsToAdd) {
                 await supabaseAddRequestEvent(event);
             }
@@ -955,7 +922,6 @@
             await loadRequests();
             closeModal();
 
-            // Refresh current view
             if (state.currentView === 'dashboard') {
                 renderDashboard(document.getElementById('app-main'));
             } else if (state.currentView === 'my-requests') {
@@ -967,72 +933,12 @@
         }
     }
 
-    // ===== Settings (Admin) =====
-    function renderSettings(container) {
-        container.innerHTML = `
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Settings</h2>
-                </div>
-                <div class="card-body">
-                    <h3>Your Profile</h3>
-                    <form id="profile-form">
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="text" class="form-control" value="${escapeHtml(state.currentUser.email)}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="profile-name">Display Name</label>
-                            <input type="text" class="form-control" id="profile-name"
-                                   value="${escapeHtml(state.profile?.display_name || '')}">
-                        </div>
-                        <div class="form-group">
-                            <label for="profile-dept">Default Department</label>
-                            <input type="text" class="form-control" id="profile-dept"
-                                   value="${escapeHtml(state.profile?.department || '')}">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Profile</button>
-                    </form>
-
-                    ${isAdmin() ? `
-                        <hr style="margin: 32px 0;">
-                        <h3>Admin Actions</h3>
-                        <p class="text-muted">To manage user roles (IAM/Admin), update the profiles table directly in Supabase dashboard.</p>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-
-        document.getElementById('profile-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const displayName = document.getElementById('profile-name').value.trim();
-            const department = document.getElementById('profile-dept').value.trim();
-
-            try {
-                await supabaseUpdateProfile(state.currentUser.id, {
-                    display_name: displayName,
-                    department: department
-                });
-                state.profile.display_name = displayName;
-                state.profile.department = department;
-                updateHeader();
-                showToast('Profile updated!', 'success');
-            } catch (error) {
-                console.error('Failed to update profile:', error);
-                showToast('Failed to update profile', 'error');
-            }
-        });
-    }
-
     // ===== Realtime Updates =====
     function setupRealtimeSubscription() {
         supabaseSubscribeToRequests(async (payload) => {
             console.log('Realtime update:', payload);
-
-            // Reload requests when changes occur
             await loadRequests();
 
-            // Refresh current view
             const mainContent = document.getElementById('app-main');
             if (state.currentView === 'dashboard' && canViewAllRequests()) {
                 renderDashboard(mainContent);
@@ -1052,7 +958,6 @@
         await loadRequests();
         setupRealtimeSubscription();
 
-        // Set default view
         if (canViewAllRequests()) {
             navigateTo('dashboard');
         } else {
@@ -1062,41 +967,21 @@
 
     // ===== App Initialization =====
     async function init() {
-        console.log('TRIARQ IAM Portal v3.0 - Supabase Edition');
-
-        // Setup auth state listener
-        supabaseOnAuthStateChange(async (event, session) => {
-            console.log('Auth event:', event, session?.user?.email);
-
-            if (event === 'SIGNED_IN' && session?.user) {
-                state.currentUser = session.user;
-                await loadProfile(session.user.id);
-                await initMainApp();
-            } else if (event === 'SIGNED_OUT') {
-                state.currentUser = null;
-                state.profile = null;
-                showScreen('login-screen');
-            }
-        });
+        console.log('TRIARQ IAM Portal v3.1 - Demo Mode (No Auth)');
 
         // Check for existing session
-        const session = await supabaseGetSession();
-        if (session?.user) {
-            state.currentUser = session.user;
-            await loadProfile(session.user.id);
+        const savedUser = loadSession();
+        if (savedUser && DEMO_USERS[savedUser.id]) {
+            state.currentUser = DEMO_USERS[savedUser.id];
             await initMainApp();
         } else {
             showScreen('login-screen');
         }
 
-        // Setup login form
         initLoginForm();
-
-        // Setup logout button
         document.getElementById('logout-btn').addEventListener('click', handleSignOut);
     }
 
-    // Start the app
     document.addEventListener('DOMContentLoaded', init);
 
 })();
