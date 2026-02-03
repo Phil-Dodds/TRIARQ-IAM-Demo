@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(start \"\" \"C:\\\\Users\\\\PhilipDodds\\\\claude-practice2\\\\index.html\")"
+      "Bash(start \"\" \"C:\\\\Users\\\\PhilipDodds\\\\claude-practice2\\\\index.html\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:phil-dodds.github.io)",
+      "Bash(npm install:*)",
+      "Bash(ng new:*)",
+      "Bash(npm run deploy:*)"
     ]
   }
 }
